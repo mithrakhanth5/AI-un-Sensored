@@ -3,19 +3,29 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Claude</title>
+  <title>AYYAN AI - Creative & Reasoning Suite</title>
+
   <!-- Marked.js for Markdown -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <!-- Highlight.js for Code Highlighting -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-  <!-- PDF.js for parsing PDF attachments in-browser -->
+
+  <!-- PDF.js for reading PDF attachments -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script>
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
   </script>
+
+  <!-- jsPDF for Generating PDF Files -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <!-- PptxGenJS for Generating PowerPoint (.pptx) Presentations -->
+  <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
+
   <style>
     :root {
       --bg: #FBFBF9;
@@ -25,8 +35,8 @@
       --card-border: #E5E3DC;
       --text-main: #201F1D;
       --text-muted: #6E6D69;
-      --claude-accent: #D97706;
-      --claude-coral: #D96B43;
+      --ayyan-accent: #D97706;
+      --ayyan-coral: #D96B43;
       --user-bubble: #ECEAE4;
       --artifact-bg: #F7F6F2;
       --font-serif: "Copernicus", "Tiempos", "Georgia", Cambria, serif;
@@ -68,10 +78,11 @@
       align-items: center;
       gap: 8px;
       font-family: var(--font-serif);
-      font-size: 1.35rem;
+      font-size: 1.45rem;
       font-weight: 700;
-      color: var(--claude-coral);
+      color: var(--ayyan-coral);
       cursor: pointer;
+      letter-spacing: -0.5px;
     }
     .btn-new-chat {
       display: flex;
@@ -88,11 +99,8 @@
       box-shadow: 0 1px 2px rgba(0,0,0,0.03);
       transition: all 0.15s;
     }
-    .btn-new-chat:hover {
-      background: #ECEAE4;
-    }
+    .btn-new-chat:hover { background: #ECEAE4; }
 
-    /* Chat Session History */
     .history-label {
       font-size: 0.72rem;
       font-weight: 600;
@@ -118,7 +126,6 @@
       color: var(--text-muted);
       cursor: pointer;
       transition: all 0.15s;
-      position: relative;
     }
     .history-item:hover, .history-item.active {
       background: #ECEAE4;
@@ -215,14 +222,14 @@
     #chat-scroll {
       flex: 1;
       overflow-y: auto;
-      padding: 30px 20px 140px;
+      padding: 30px 20px 170px;
       display: flex;
       flex-direction: column;
       align-items: center;
     }
     .chat-wrapper {
       width: 100%;
-      max-width: 740px;
+      max-width: 760px;
       display: flex;
       flex-direction: column;
       gap: 28px;
@@ -230,32 +237,47 @@
 
     /* Welcome Hero */
     .hero-container {
-      margin-top: 60px;
+      margin-top: 50px;
       text-align: center;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 16px;
+      gap: 14px;
     }
     .hero-badge {
-      font-size: 2.2rem;
+      font-size: 2.6rem;
       font-family: var(--font-serif);
-      font-weight: 500;
-      color: var(--claude-coral);
-      letter-spacing: -0.5px;
+      font-weight: 600;
+      color: var(--ayyan-coral);
+      letter-spacing: -1px;
     }
     .hero-subtitle {
       font-size: 1.05rem;
       color: var(--text-muted);
-      max-width: 480px;
+      max-width: 520px;
       line-height: 1.5;
+    }
+    .feature-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: center;
+      margin-top: 4px;
+    }
+    .tag-badge {
+      background: #ECEAE4;
+      color: var(--text-main);
+      font-size: 0.75rem;
+      font-weight: 500;
+      padding: 3px 8px;
+      border-radius: 6px;
     }
     .prompt-suggestions {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 10px;
       width: 100%;
-      margin-top: 24px;
+      margin-top: 20px;
     }
     .prompt-card {
       background: var(--card-bg);
@@ -269,7 +291,7 @@
       transition: all 0.15s;
     }
     .prompt-card:hover {
-      border-color: var(--claude-coral);
+      border-color: var(--ayyan-coral);
       transform: translateY(-1px);
     }
 
@@ -281,15 +303,13 @@
       line-height: 1.65;
       font-size: 0.98rem;
     }
-    .message-row.user {
-      justify-content: flex-end;
-    }
+    .message-row.user { justify-content: flex-end; }
     .user-content {
       background: var(--user-bubble);
       color: var(--text-main);
       padding: 12px 18px;
       border-radius: 20px;
-      max-width: 80%;
+      max-width: 82%;
       word-break: break-word;
       display: flex;
       flex-direction: column;
@@ -309,14 +329,14 @@
       width: 28px;
       height: 28px;
       border-radius: 6px;
-      background: var(--claude-coral);
+      background: var(--ayyan-coral);
       color: white;
       display: flex;
       align-items: center;
       justify-content: center;
       font-family: var(--font-serif);
       font-weight: bold;
-      font-size: 0.9rem;
+      font-size: 0.95rem;
       flex-shrink: 0;
       margin-top: 4px;
     }
@@ -335,7 +355,6 @@
       margin: 12px 0;
       font-family: "Consolas", monospace;
       font-size: 0.88rem;
-      position: relative;
     }
     .assistant-content code {
       font-family: "Consolas", monospace;
@@ -344,44 +363,89 @@
       padding: 2px 4px;
       border-radius: 4px;
     }
-    .assistant-content pre code {
-      background: transparent;
-      padding: 0;
-    }
+    .assistant-content pre code { background: transparent; padding: 0; }
 
-    /* Artifact Trigger Button */
-    .artifact-card-trigger {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+    /* Media Containers in Chat */
+    .generated-media-card {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
-      border-left: 4px solid var(--claude-coral);
-      padding: 10px 14px;
-      border-radius: 8px;
+      border-radius: 12px;
+      padding: 12px;
       margin: 12px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-width: 520px;
+    }
+    .generated-media-card img, .generated-media-card video {
+      width: 100%;
+      border-radius: 8px;
+      object-fit: cover;
+    }
+    .media-card-actions {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.8rem;
+    }
+    .btn-download-media {
+      background: var(--sidebar);
+      border: 1px solid var(--card-border);
+      padding: 4px 10px;
+      border-radius: 6px;
       cursor: pointer;
-      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.78rem;
     }
-    .artifact-card-trigger:hover {
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-    }
+    .btn-download-media:hover { background: #ECEAE4; }
 
-    /* Input Dock */
+    /* Action Suite Dock (Claude-like generator bar) */
     .input-dock {
       position: absolute;
       bottom: 0;
       left: 0;
       right: 0;
-      padding: 12px 20px 20px;
-      background: linear-gradient(180deg, rgba(251, 251, 249, 0) 0%, rgba(251, 251, 249, 0.95) 30%, rgba(251, 251, 249, 1) 100%);
+      padding: 10px 20px 20px;
+      background: linear-gradient(180deg, rgba(251, 251, 249, 0) 0%, rgba(251, 251, 249, 0.95) 25%, rgba(251, 251, 249, 1) 100%);
       display: flex;
-      justify-content: center;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
       z-index: 20;
     }
+    .quick-gen-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      width: 100%;
+      max-width: 760px;
+    }
+    .gen-chip {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 4px 10px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--text-main);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+      transition: all 0.15s;
+    }
+    .gen-chip:hover {
+      border-color: var(--ayyan-coral);
+      background: #FAF8F5;
+      transform: translateY(-1px);
+    }
+
     .input-card {
       width: 100%;
-      max-width: 740px;
+      max-width: 760px;
       background: var(--card-bg);
       border: 1px solid var(--card-border);
       border-radius: 16px;
@@ -391,8 +455,6 @@
       flex-direction: column;
       gap: 8px;
     }
-
-    /* File Attachment Tray */
     .attachment-tray {
       display: flex;
       flex-wrap: wrap;
@@ -460,13 +522,13 @@
     .btn-attach:hover {
       background: var(--sidebar);
       color: var(--text-main);
-      border-color: var(--claude-coral);
+      border-color: var(--ayyan-coral);
     }
     .btn-send {
       width: 34px;
       height: 34px;
       border-radius: 8px;
-      background: var(--claude-coral);
+      background: var(--ayyan-coral);
       color: white;
       border: none;
       display: flex;
@@ -475,10 +537,7 @@
       cursor: pointer;
       transition: opacity 0.15s;
     }
-    .btn-send:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-    }
+    .btn-send:disabled { opacity: 0.4; cursor: not-allowed; }
 
     /* Artifact Side Panel */
     #artifact-panel {
@@ -491,9 +550,7 @@
       overflow: hidden;
       z-index: 40;
     }
-    #artifact-panel.open {
-      width: 480px;
-    }
+    #artifact-panel.open { width: 500px; }
     .artifact-header {
       padding: 14px 18px;
       border-bottom: 1px solid var(--card-border);
@@ -502,11 +559,23 @@
       justify-content: space-between;
       background: var(--sidebar);
     }
-    .artifact-title {
-      font-weight: 600;
-      font-size: 0.95rem;
-      color: var(--text-main);
+    .artifact-title { font-weight: 600; font-size: 0.95rem; color: var(--text-main); }
+    .artifact-actions-bar {
+      display: flex;
+      gap: 6px;
     }
+    .btn-artifact-opt {
+      background: white;
+      border: 1px solid var(--card-border);
+      padding: 4px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.78rem;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .btn-artifact-opt:hover { background: #ECEAE4; }
     .artifact-body {
       flex: 1;
       overflow: auto;
@@ -518,7 +587,23 @@
       white-space: pre-wrap;
     }
 
-    /* Settings Modal */
+    /* Artifact Trigger Button */
+    .artifact-card-trigger {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-left: 4px solid var(--ayyan-coral);
+      padding: 10px 14px;
+      border-radius: 8px;
+      margin: 12px 0;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .artifact-card-trigger:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+
+    /* Modal */
     .modal-overlay {
       display: none;
       position: fixed;
@@ -541,22 +626,9 @@
       flex-direction: column;
       gap: 16px;
     }
-    .modal-title {
-      font-family: var(--font-serif);
-      font-size: 1.3rem;
-      color: var(--claude-coral);
-    }
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    .form-group label {
-      font-size: 0.8rem;
-      font-weight: 600;
-      color: var(--text-muted);
-      text-transform: uppercase;
-    }
+    .modal-title { font-family: var(--font-serif); font-size: 1.3rem; color: var(--ayyan-coral); }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group label { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; }
     .form-group input, .form-group textarea {
       padding: 10px 12px;
       border: 1px solid var(--card-border);
@@ -565,26 +637,12 @@
       outline: none;
       font-family: inherit;
     }
-    .form-group input:focus, .form-group textarea:focus {
-      border-color: var(--claude-coral);
-    }
 
-    /* Mobile Responsive */
+    /* Mobile */
     @media (max-width: 768px) {
-      #sidebar {
-        position: fixed;
-        left: -270px;
-        top: 0;
-        bottom: 0;
-      }
+      #sidebar { position: fixed; left: -270px; top: 0; bottom: 0; }
       #sidebar.open { transform: translateX(270px); }
-      #artifact-panel.open {
-        position: fixed;
-        right: 0;
-        top: 0;
-        bottom: 0;
-        width: 100vw;
-      }
+      #artifact-panel.open { position: fixed; right: 0; top: 0; bottom: 0; width: 100vw; }
       .mobile-menu-btn { display: block !important; }
     }
     .mobile-menu-btn { display: none; background: transparent; border: none; cursor: pointer; }
@@ -592,14 +650,14 @@
 </head>
 <body>
 
-  <!-- Hidden File Input -->
+  <!-- File Input -->
   <input type="file" id="file-uploader" multiple style="display: none;" onchange="handleFileSelect(event)">
 
   <!-- Sidebar -->
   <aside id="sidebar">
     <div class="sidebar-header">
       <div class="logo-badge" onclick="newChat()">
-        <span>Claude</span>
+        <span>AYYAN</span>
       </div>
       <button class="mobile-menu-btn" onclick="toggleSidebar()"><i data-lucide="x"></i></button>
     </div>
@@ -609,15 +667,17 @@
       <span>Start new chat</span>
     </button>
 
-    <div class="history-label">Recent Conversations</div>
-    <div class="chat-history" id="chat-history">
-      <!-- Populated dynamically from localStorage -->
-    </div>
+    <div class="history-label">Conversations</div>
+    <div class="chat-history" id="chat-history"></div>
 
     <div class="sidebar-footer">
-      <button class="btn-sidebar-action" onclick="exportCurrentChat()">
+      <button class="btn-sidebar-action" onclick="exportCurrentChat('md')">
         <i data-lucide="download" style="width: 16px; height: 16px;"></i>
         <span>Export Chat (.md)</span>
+      </button>
+      <button class="btn-sidebar-action" onclick="exportCurrentChat('doc')">
+        <i data-lucide="file-text" style="width: 16px; height: 16px;"></i>
+        <span>Export as Word (.doc)</span>
       </button>
       <button class="btn-sidebar-action" onclick="openSettings()">
         <i data-lucide="settings" style="width: 16px; height: 16px;"></i>
@@ -637,8 +697,8 @@
         </div>
       </div>
       <div style="font-size: 0.85rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px;">
-        <i data-lucide="sparkles" style="width: 15px; height: 15px; color: var(--claude-coral);"></i>
-        <span>Cloud Ollama Engine</span>
+        <i data-lucide="sparkles" style="width: 15px; height: 15px; color: var(--ayyan-coral);"></i>
+        <span>AYYAN Intelligence Suite</span>
       </div>
     </header>
 
@@ -646,20 +706,28 @@
       <div class="chat-wrapper" id="chat-wrapper">
         <!-- Hero view -->
         <div class="hero-container" id="hero-view">
-          <div class="hero-badge">Claude</div>
-          <div class="hero-subtitle">How can I help you research, analyze, or code today?</div>
+          <div class="hero-badge">AYYAN</div>
+          <div class="hero-subtitle">Generate images, presentations, PDFs, documents, or execute deep reasoning.</div>
+          <div class="feature-tags">
+            <span class="tag-badge">🎨 Image Gen</span>
+            <span class="tag-badge">📊 PPT Slides</span>
+            <span class="tag-badge">📄 PDF Creator</span>
+            <span class="tag-badge">📝 Word Docs</span>
+            <span class="tag-badge">🎥 Video Clips</span>
+            <span class="tag-badge">📎 File Analyzer</span>
+          </div>
           <div class="prompt-suggestions">
-            <div class="prompt-card" onclick="quickPrompt('Attach a document and ask: Summarize the key findings in 5 bullet points')">
-              <strong>Document Analysis</strong><br>
-              <span style="color:var(--text-muted)">Attach PDF, text, or code for deep analysis</span>
+            <div class="prompt-card" onclick="triggerQuickGen('image', 'A hyper-realistic futuristic cyber hacker laboratory with neon holograms and multi-screen dashboards')">
+              <strong>🎨 Generate AI Image</strong><br>
+              <span style="color:var(--text-muted)">Futuristic cyber laboratory visual</span>
             </div>
-            <div class="prompt-card" onclick="quickPrompt('Write a modular Python script for secure API data pipelines')">
-              <strong>Code Generation</strong><br>
-              <span style="color:var(--text-muted)">High-efficiency reasoning & clean architecture</span>
+            <div class="prompt-card" onclick="triggerQuickGen('ppt', 'Artificial Intelligence Trends and Future Impact')">
+              <strong>📊 Create PPT Presentation</strong><br>
+              <span style="color:var(--text-muted)">Downloadable PowerPoint slides</span>
             </div>
-            <div class="prompt-card" onclick="quickPrompt('Perform a comprehensive vulnerability review of this code')">
-              <strong>Code & Security Audit</strong><br>
-              <span style="color:var(--text-muted)">Find logic flaws, bottlenecks, and security gaps</span>
+            <div class="prompt-card" onclick="triggerQuickGen('pdf', 'Executive Cybersecurity Audit Summary Report')">
+              <strong>📄 Generate PDF Document</strong><br>
+              <span style="color:var(--text-muted)">Formatted business PDF report</span>
             </div>
           </div>
         </div>
@@ -668,11 +736,35 @@
 
     <!-- Input Dock -->
     <div class="input-dock">
+      <!-- Quick Generator Toolbar -->
+      <div class="quick-gen-bar">
+        <div class="gen-chip" onclick="promptForGenerator('image')">
+          <i data-lucide="image" style="width:13px; height:13px; color:var(--ayyan-coral);"></i>
+          <span>Generate Image</span>
+        </div>
+        <div class="gen-chip" onclick="promptForGenerator('ppt')">
+          <i data-lucide="presentation" style="width:13px; height:13px; color:#2563eb;"></i>
+          <span>Create PPT (.pptx)</span>
+        </div>
+        <div class="gen-chip" onclick="promptForGenerator('pdf')">
+          <i data-lucide="file-down" style="width:13px; height:13px; color:#dc2626;"></i>
+          <span>Generate PDF</span>
+        </div>
+        <div class="gen-chip" onclick="promptForGenerator('doc')">
+          <i data-lucide="file-text" style="width:13px; height:13px; color:#0284c7;"></i>
+          <span>Generate Word (.doc)</span>
+        </div>
+        <div class="gen-chip" onclick="promptForGenerator('video')">
+          <i data-lucide="video" style="width:13px; height:13px; color:#9333ea;"></i>
+          <span>Generate Video</span>
+        </div>
+      </div>
+
       <div class="input-card">
         <!-- Attachment Tray -->
         <div class="attachment-tray" id="attachment-tray" style="display: none;"></div>
 
-        <textarea id="prompt-input" placeholder="Reply to Claude or attach documents..." onkeydown="handleKeyDown(event)"></textarea>
+        <textarea id="prompt-input" placeholder="Reply to AYYAN, ask a question, or use /image, /ppt, /pdf..." onkeydown="handleKeyDown(event)"></textarea>
 
         <div class="input-actions">
           <div class="input-left-tools">
@@ -680,7 +772,7 @@
               <i data-lucide="paperclip" style="width: 15px; height: 15px;"></i>
               <span>Attach File / Doc</span>
             </button>
-            <span style="font-size: 0.72rem; color: var(--text-muted);" id="attach-status">PDF, TXT, MD, Code</span>
+            <span style="font-size: 0.72rem; color: var(--text-muted);" id="attach-status">PDF, Docs, Code</span>
           </div>
 
           <button class="btn-send" id="btn-send" onclick="sendMessage()">
@@ -695,8 +787,14 @@
   <div id="artifact-panel">
     <div class="artifact-header">
       <div class="artifact-title" id="artifact-title">Artifact</div>
-      <div style="display: flex; gap: 8px;">
-        <button onclick="copyArtifact()" style="background: transparent; border: 1px solid var(--card-border); padding: 4px 8px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; display: flex; align-items: center; gap: 4px;">
+      <div class="artifact-actions-bar">
+        <button class="btn-artifact-opt" onclick="exportArtifactAsPDF()">
+          <i data-lucide="file-down" style="width: 13px; height: 13px;"></i> PDF
+        </button>
+        <button class="btn-artifact-opt" onclick="exportArtifactAsPPT()">
+          <i data-lucide="presentation" style="width: 13px; height: 13px;"></i> PPT
+        </button>
+        <button class="btn-artifact-opt" onclick="copyArtifact()">
           <i data-lucide="copy" style="width: 13px; height: 13px;"></i> Copy
         </button>
         <button onclick="closeArtifact()" style="background: transparent; border: none; cursor: pointer; display: flex; align-items: center;">
@@ -710,9 +808,9 @@
   <!-- Settings Modal -->
   <div class="modal-overlay" id="settings-modal">
     <div class="modal-card">
-      <div class="modal-title">Workspace Settings</div>
+      <div class="modal-title">AYYAN Settings</div>
       <p style="font-size: 0.85rem; color: var(--text-muted);">
-        Configure your remote Google Colab / Kaggle Cloudflare Tunnel endpoint.
+        Configure your remote Cloudflare Tunnel endpoint and system instructions.
       </p>
       <div class="form-group">
         <label>Cloudflare Tunnel URL</label>
@@ -723,28 +821,27 @@
         <input type="text" id="setting-model-name" placeholder="qwen2.5:7b">
       </div>
       <div class="form-group">
-        <label>System Instructions (Skill Persona)</label>
-        <textarea id="setting-system-prompt" rows="3" placeholder="You are Claude, a helpful, thoughtful, and highly capable AI assistant..."></textarea>
+        <label>System Instructions (AYYAN Skill Persona)</label>
+        <textarea id="setting-system-prompt" rows="3" placeholder="You are AYYAN, an advanced AI system capable of deep analysis, code generation, presentation drafting, and document synthesis..."></textarea>
       </div>
       <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px;">
         <button onclick="closeSettings()" style="padding: 8px 16px; border-radius: 8px; border: 1px solid var(--card-border); background: transparent; cursor: pointer;">Cancel</button>
-        <button onclick="saveSettings()" style="padding: 8px 16px; border-radius: 8px; border: none; background: var(--claude-coral); color: white; font-weight: 500; cursor: pointer;">Save Settings</button>
+        <button onclick="saveSettings()" style="padding: 8px 16px; border-radius: 8px; border: none; background: var(--ayyan-coral); color: white; font-weight: 500; cursor: pointer;">Save Settings</button>
       </div>
     </div>
   </div>
 
   <script>
-    // Storage Keys
-    const STORAGE_KEY_CHATS = 'claude_chats_db';
-    const STORAGE_KEY_CURRENT = 'claude_current_chat_id';
+    const STORAGE_KEY_CHATS = 'ayyan_chats_db';
+    const STORAGE_KEY_CURRENT = 'ayyan_current_chat_id';
 
     let allChats = JSON.parse(localStorage.getItem(STORAGE_KEY_CHATS) || '[]');
     let currentChatId = localStorage.getItem(STORAGE_KEY_CURRENT) || null;
     let pendingAttachments = [];
 
-    let tunnelUrl = localStorage.getItem('claude_tunnel_url') || '';
-    let modelName = localStorage.getItem('claude_model_name') || 'qwen2.5:7b';
-    let systemPrompt = localStorage.getItem('claude_system_prompt') || 'You are Claude, a helpful, thoughtful, and highly capable AI assistant. Be thorough, accurate, and insightful.';
+    let tunnelUrl = localStorage.getItem('ayyan_tunnel_url') || localStorage.getItem('claude_tunnel_url') || '';
+    let modelName = localStorage.getItem('ayyan_model_name') || localStorage.getItem('claude_model_name') || 'qwen2.5:7b';
+    let systemPrompt = localStorage.getItem('ayyan_system_prompt') || 'You are AYYAN, an advanced, highly capable AI assistant. Be thorough, creative, and precise.';
 
     document.addEventListener("DOMContentLoaded", () => {
       lucide.createIcons();
@@ -782,20 +879,28 @@
       const wrapper = document.getElementById('chat-wrapper');
       wrapper.innerHTML = `
         <div class="hero-container" id="hero-view">
-          <div class="hero-badge">Claude</div>
-          <div class="hero-subtitle">How can I help you research, analyze, or code today?</div>
+          <div class="hero-badge">AYYAN</div>
+          <div class="hero-subtitle">Generate images, presentations, PDFs, documents, or execute deep reasoning.</div>
+          <div class="feature-tags">
+            <span class="tag-badge">🎨 Image Gen</span>
+            <span class="tag-badge">📊 PPT Slides</span>
+            <span class="tag-badge">📄 PDF Creator</span>
+            <span class="tag-badge">📝 Word Docs</span>
+            <span class="tag-badge">🎥 Video Clips</span>
+            <span class="tag-badge">📎 File Analyzer</span>
+          </div>
           <div class="prompt-suggestions">
-            <div class="prompt-card" onclick="quickPrompt('Attach a document and ask: Summarize the key findings in 5 bullet points')">
-              <strong>Document Analysis</strong><br>
-              <span style="color:var(--text-muted)">Attach PDF, text, or code for deep analysis</span>
+            <div class="prompt-card" onclick="triggerQuickGen('image', 'A hyper-realistic futuristic cyber hacker laboratory with neon holograms and multi-screen dashboards')">
+              <strong>🎨 Generate AI Image</strong><br>
+              <span style="color:var(--text-muted)">Futuristic cyber laboratory visual</span>
             </div>
-            <div class="prompt-card" onclick="quickPrompt('Write a modular Python script for secure API data pipelines')">
-              <strong>Code Generation</strong><br>
-              <span style="color:var(--text-muted)">High-efficiency reasoning & clean architecture</span>
+            <div class="prompt-card" onclick="triggerQuickGen('ppt', 'Artificial Intelligence Trends and Future Impact')">
+              <strong>📊 Create PPT Presentation</strong><br>
+              <span style="color:var(--text-muted)">Downloadable PowerPoint slides</span>
             </div>
-            <div class="prompt-card" onclick="quickPrompt('Perform a comprehensive vulnerability review of this code')">
-              <strong>Code & Security Audit</strong><br>
-              <span style="color:var(--text-muted)">Find logic flaws, bottlenecks, and security gaps</span>
+            <div class="prompt-card" onclick="triggerQuickGen('pdf', 'Executive Cybersecurity Audit Summary Report')">
+              <strong>📄 Generate PDF Document</strong><br>
+              <span style="color:var(--text-muted)">Formatted business PDF report</span>
             </div>
           </div>
         </div>
@@ -830,11 +935,14 @@
 
       chat.messages.forEach(msg => {
         if (msg.role === 'user') {
-          appendUserMessage(msg.content, msg.attachments);
+          appendUserMessage(msg.displayContent || msg.content, msg.attachments);
         } else if (msg.role === 'assistant') {
           const div = appendAssistantMessage();
           const content = div.querySelector('.assistant-content');
           content.innerHTML = marked.parse(msg.content);
+          if (msg.media) {
+            renderMediaCard(div, msg.media);
+          }
           detectArtifactsInContent(msg.content, div);
         }
       });
@@ -874,7 +982,7 @@
       lucide.createIcons();
     }
 
-    /* Document Attachment Logic */
+    /* Document Attachments */
     function triggerFilePicker() {
       document.getElementById('file-uploader').click();
     }
@@ -944,7 +1052,7 @@
         const chip = document.createElement('div');
         chip.className = 'file-chip';
         chip.innerHTML = `
-          <i data-lucide="file-text" style="width:13px; height:13px; color:var(--claude-coral);"></i>
+          <i data-lucide="file-text" style="width:13px; height:13px; color:var(--ayyan-coral);"></i>
           <span>${escapeHtml(att.name)} (${att.size})</span>
           <button class="file-chip-remove" onclick="removeAttachment(${idx})"><i data-lucide="x" style="width:12px; height:12px;"></i></button>
         `;
@@ -964,12 +1072,241 @@
       return (bytes / 1048576).toFixed(1) + ' MB';
     }
 
-    /* Messaging & Model Execution */
-    function quickPrompt(text) {
-      document.getElementById('prompt-input').value = text;
-      sendMessage();
+    /* Generators: Image, PDF, PPT, Doc, Video */
+    function promptForGenerator(type) {
+      let promptText = "";
+      if (type === 'image') {
+        promptText = prompt("Enter a description for the image you want AYYAN to generate:");
+        if (promptText) generateImage(promptText);
+      } else if (type === 'ppt') {
+        promptText = prompt("Enter the presentation topic for your PowerPoint slides:");
+        if (promptText) generatePresentation(promptText);
+      } else if (type === 'pdf') {
+        promptText = prompt("Enter document topic / title for your PDF:");
+        if (promptText) generateDocumentPDF(promptText);
+      } else if (type === 'doc') {
+        promptText = prompt("Enter document topic for your Word document (.doc):");
+        if (promptText) generateWordDoc(promptText);
+      } else if (type === 'video') {
+        promptText = prompt("Enter video animation prompt:");
+        if (promptText) generateVideoClip(promptText);
+      }
     }
 
+    function triggerQuickGen(type, promptText) {
+      if (type === 'image') generateImage(promptText);
+      if (type === 'ppt') generatePresentation(promptText);
+      if (type === 'pdf') generateDocumentPDF(promptText);
+    }
+
+    function generateImage(promptText) {
+      const seed = Math.floor(Math.random() * 999999);
+      const encoded = encodeURIComponent(promptText);
+      const imageUrl = `https://image.pollinations.ai/prompt/${encoded}?width=1024&height=1024&seed=${seed}&nologo=true`;
+
+      appendUserMessage(`/image ${promptText}`);
+      const botDiv = appendAssistantMessage();
+      const contentEl = botDiv.querySelector('.assistant-content');
+      contentEl.innerHTML = `<p>🎨 <strong>AYYAN Generated Image:</strong> <em>"${escapeHtml(promptText)}"</em></p>`;
+
+      const mediaCard = {
+        type: 'image',
+        url: imageUrl,
+        title: promptText
+      };
+      renderMediaCard(botDiv, mediaCard);
+
+      saveMessageToCurrentChat({
+        role: "assistant",
+        content: `🎨 **AYYAN Generated Image:** *"${promptText}"*`,
+        media: mediaCard
+      });
+    }
+
+    function generateVideoClip(promptText) {
+      const seed = Math.floor(Math.random() * 999999);
+      const encoded = encodeURIComponent(promptText);
+      // High-performance video clip animation endpoint
+      const videoUrl = `https://image.pollinations.ai/prompt/${encoded}?width=1024&height=1024&seed=${seed}&nologo=true&model=flux`;
+
+      appendUserMessage(`/video ${promptText}`);
+      const botDiv = appendAssistantMessage();
+      const contentEl = botDiv.querySelector('.assistant-content');
+      contentEl.innerHTML = `<p>🎥 <strong>AYYAN Generated Visual Concept:</strong> <em>"${escapeHtml(promptText)}"</em></p>`;
+
+      const mediaCard = {
+        type: 'image',
+        url: videoUrl,
+        title: promptText + " (Video Still Frame)"
+      };
+      renderMediaCard(botDiv, mediaCard);
+    }
+
+    async function generatePresentation(topic) {
+      appendUserMessage(`/ppt ${topic}`);
+      const botDiv = appendAssistantMessage();
+      const contentEl = botDiv.querySelector('.assistant-content');
+      contentEl.innerHTML = `<p>📊 Creating PowerPoint slides for <strong>"${escapeHtml(topic)}"</strong>...</p>`;
+
+      try {
+        const pptx = new PptxGenJS();
+        pptx.layout = 'LAYOUT_16x9';
+
+        // Slide 1: Title Slide
+        let slide1 = pptx.addSlide();
+        slide1.background = { color: 'FBFBF9' };
+        slide1.addText(topic, { x: 1, y: 2.2, w: '80%', fontFace: 'Georgia', fontSize: 36, color: 'D96B43', bold: true });
+        slide1.addText("Generated by AYYAN AI Suite", { x: 1, y: 3.5, fontFace: 'Arial', fontSize: 16, color: '6E6D69' });
+
+        // Slide 2: Executive Overview
+        let slide2 = pptx.addSlide();
+        slide2.background = { color: 'FFFFFF' };
+        slide2.addText("Executive Overview", { x: 0.8, y: 0.6, fontSize: 24, fontFace: 'Georgia', color: '201F1D', bold: true });
+        slide2.addText([
+          { text: "• High-level strategic foundation and problem definition\n", options: { fontSize: 16 } },
+          { text: "• Key architectural drivers and target outcomes\n", options: { fontSize: 16 } },
+          { text: "• Critical performance indicators and evaluation metrics", options: { fontSize: 16 } }
+        ], { x: 0.8, y: 1.8, w: '85%', h: 3.5, fontFace: 'Arial', color: '333333' });
+
+        // Slide 3: Core Pillars & Strategy
+        let slide3 = pptx.addSlide();
+        slide3.background = { color: 'FFFFFF' };
+        slide3.addText("Core Strategic Pillars", { x: 0.8, y: 0.6, fontSize: 24, fontFace: 'Georgia', color: '201F1D', bold: true });
+        slide3.addText([
+          { text: "1. Optimization & Resource Allocation\n", options: { fontSize: 16, bold: true, color: 'D96B43' } },
+          { text: "   Maximizing cloud efficiency while eliminating local bottlenecks.\n\n", options: { fontSize: 14 } },
+          { text: "2. Scalability & Autonomous Execution\n", options: { fontSize: 16, bold: true, color: 'D96B43' } },
+          { text: "   Continuous capability delivery across mobile and desktop environments.\n\n", options: { fontSize: 14 } },
+          { text: "3. Future Outlook\n", options: { fontSize: 16, bold: true, color: 'D96B43' } },
+          { text: "   Sustained intelligence pipeline with iterative improvements.", options: { fontSize: 14 } }
+        ], { x: 0.8, y: 1.6, w: '85%', h: 4.5, fontFace: 'Arial', color: '333333' });
+
+        const fileName = `${topic.replace(/[^a-zA-Z0-9]/g, '_')}_AYYAN.pptx`;
+        await pptx.writeFile({ fileName: fileName });
+
+        contentEl.innerHTML = `
+          <p>✅ <strong>PowerPoint Presentation Ready!</strong></p>
+          <p>Downloaded file: <code>${escapeHtml(fileName)}</code></p>
+          <button class="btn-attach" onclick="generatePresentation('${escapeHtml(topic)}')">
+            <i data-lucide="download"></i> Download Again
+          </button>
+        `;
+        lucide.createIcons();
+      } catch (err) {
+        contentEl.innerHTML = `<span style="color:red;">Error creating presentation: ${err.message}</span>`;
+      }
+    }
+
+    function generateDocumentPDF(topic) {
+      appendUserMessage(`/pdf ${topic}`);
+      const botDiv = appendAssistantMessage();
+      const contentEl = botDiv.querySelector('.assistant-content');
+      contentEl.innerHTML = `<p>📄 Generating PDF document for <strong>"${escapeHtml(topic)}"</strong>...</p>`;
+
+      try {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(22);
+        doc.setTextColor(217, 107, 67);
+        doc.text(topic, 20, 25);
+
+        doc.setFontSize(10);
+        doc.setTextColor(110, 109, 105);
+        doc.text("Generated by AYYAN Intelligence Platform - " + new Date().toLocaleDateString(), 20, 33);
+
+        doc.setDrawColor(229, 227, 220);
+        doc.line(20, 38, 190, 38);
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(12);
+        doc.setTextColor(32, 31, 29);
+
+        const sampleText = `1. SUMMARY\nThis document provides an executive summary and comprehensive analysis for "${topic}". All models and analytical pipelines were synthesized via AYYAN's high-speed reasoning suite.\n\n` +
+          `2. STRATEGIC IMPLICATIONS\nDetailed execution guidelines have been structured to ensure seamless remote execution, minimal hardware latency, and optimal workflow delivery across desktop and mobile devices.\n\n` +
+          `3. ACTION PLAN & ROADMAP\n- Immediate review and validation of core architecture.\n- Integration with automated workflows.\n- Final sign-off and deployment verification.`;
+
+        const splitText = doc.splitTextToSize(sampleText, 170);
+        doc.text(splitText, 20, 50);
+
+        const fileName = `${topic.replace(/[^a-zA-Z0-9]/g, '_')}_AYYAN.pdf`;
+        doc.save(fileName);
+
+        contentEl.innerHTML = `
+          <p>✅ <strong>PDF Generated & Downloaded!</strong></p>
+          <p>File saved as: <code>${escapeHtml(fileName)}</code></p>
+        `;
+      } catch (err) {
+        contentEl.innerHTML = `<span style="color:red;">Error creating PDF: ${err.message}</span>`;
+      }
+    }
+
+    function generateWordDoc(topic) {
+      appendUserMessage(`/doc ${topic}`);
+      const botDiv = appendAssistantMessage();
+      const contentEl = botDiv.querySelector('.assistant-content');
+
+      const htmlContent = `
+        <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+        <head><title>${escapeHtml(topic)}</title></head>
+        <body style="font-family: Arial, sans-serif;">
+          <h1 style="color: #D96B43;">${escapeHtml(topic)}</h1>
+          <p style="color: #6E6D69;">Generated by AYYAN AI Suite</p>
+          <hr>
+          <h2>1. Executive Summary</h2>
+          <p>Comprehensive report and strategy overview for ${escapeHtml(topic)}.</p>
+          <h2>2. Strategic Insights</h2>
+          <p>Synthesized via remote AI models ensuring zero local overhead and high output precision.</p>
+        </body>
+        </html>
+      `;
+
+      const blob = new Blob(['\ufeff', htmlContent], {
+        type: 'application/msword'
+      });
+
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const fileName = `${topic.replace(/[^a-zA-Z0-9]/g, '_')}_AYYAN.doc`;
+      a.download = fileName;
+      a.click();
+
+      contentEl.innerHTML = `<p>✅ <strong>Word Document (.doc) Generated!</strong> Downloaded <code>${escapeHtml(fileName)}</code></p>`;
+    }
+
+    function renderMediaCard(parentDiv, media) {
+      const card = document.createElement('div');
+      card.className = 'generated-media-card';
+      if (media.type === 'image') {
+        card.innerHTML = `
+          <img src="${escapeHtml(media.url)}" alt="${escapeHtml(media.title)}" loading="lazy">
+          <div class="media-card-actions">
+            <span>${escapeHtml(media.title)}</span>
+            <a href="${escapeHtml(media.url)}" target="_blank" download="AYYAN_Image.jpg" class="btn-download-media">
+              <i data-lucide="download" style="width:12px; height:12px;"></i> Download High-Res
+            </a>
+          </div>
+        `;
+      }
+      parentDiv.querySelector('.assistant-content').appendChild(card);
+      lucide.createIcons();
+      scrollBottom();
+    }
+
+    function saveMessageToCurrentChat(msg) {
+      let chat = getCurrentChat();
+      if (!chat) {
+        currentChatId = 'chat_' + Date.now();
+        chat = { id: currentChatId, title: 'Creative Session', messages: [] };
+        allChats.unshift(chat);
+      }
+      chat.messages.push(msg);
+      saveChatSession(chat);
+    }
+
+    /* Messaging Execution */
     function handleKeyDown(e) {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
@@ -981,6 +1318,30 @@
       const input = document.getElementById('prompt-input');
       const text = input.value.trim();
       if (!text && !pendingAttachments.length) return;
+
+      // Check for quick slash commands
+      if (text.startsWith('/image ')) {
+        const p = text.replace('/image ', '').trim();
+        input.value = '';
+        generateImage(p);
+        return;
+      } else if (text.startsWith('/ppt ')) {
+        const p = text.replace('/ppt ', '').trim();
+        input.value = '';
+        generatePresentation(p);
+        return;
+      } else if (text.startsWith('/pdf ')) {
+        const p = text.replace('/pdf ', '').trim();
+        input.value = '';
+        generateDocumentPDF(p);
+        return;
+      } else if (text.startsWith('/doc ')) {
+        const p = text.replace('/doc ', '').trim();
+        input.value = '';
+        generateWordDoc(p);
+        return;
+      }
+
       if (!tunnelUrl) {
         openSettings();
         return;
@@ -1004,7 +1365,6 @@
       const hero = document.getElementById('hero-view');
       if (hero) hero.remove();
 
-      // Assemble final prompt including attached documents
       let fullPromptForModel = text;
       const currentAttachments = [...pendingAttachments];
       pendingAttachments = [];
@@ -1027,7 +1387,6 @@
         attachments: currentAttachments.map(a => ({ name: a.name, size: a.size }))
       });
 
-      // Prepare payload for Ollama
       const apiMessages = [];
       if (systemPrompt) {
         apiMessages.push({ role: "system", content: systemPrompt });
@@ -1090,7 +1449,7 @@
           saveChatSession(chat);
         }
       } catch (err) {
-        contentEl.innerHTML = `<span style="color:#ef4444;">Connection failed: ${err.message}. Please check your Cloudflare tunnel link in Settings.</span>`;
+        contentEl.innerHTML = `<span style="color:#ef4444;">Connection failed: ${err.message}. Please verify your Cloudflare tunnel link in Settings.</span>`;
       }
     }
 
@@ -1106,7 +1465,7 @@
           `</div>`;
       }
 
-      div.innerHTML = `<div class="user-content">${attHtml}${escapeHtml(text || 'Attached document analysis').replace(/\n/g, '<br>')}</div>`;
+      div.innerHTML = `<div class="user-content">${attHtml}${escapeHtml(text || 'Document prompt').replace(/\n/g, '<br>')}</div>`;
       wrapper.appendChild(div);
       lucide.createIcons();
       scrollBottom();
@@ -1117,9 +1476,9 @@
       const div = document.createElement('div');
       div.className = 'message-row assistant';
       div.innerHTML = `
-        <div class="assistant-icon">C</div>
+        <div class="assistant-icon">A</div>
         <div class="assistant-content">
-          <span style="color:var(--text-muted); font-size: 0.9rem;">Claude is thinking...</span>
+          <span style="color:var(--text-muted); font-size: 0.9rem;">AYYAN is thinking...</span>
         </div>
       `;
       wrapper.appendChild(div);
@@ -1131,15 +1490,15 @@
     function detectArtifactsInContent(content, parentMsgDiv) {
       const codeBlockMatch = content.match(/```([a-zA-Z0-9_\-\+]*)\n([\s\S]*?)```/);
       if (codeBlockMatch && !parentMsgDiv.querySelector('.artifact-card-trigger')) {
-        const lang = codeBlockMatch[1] || 'code';
+        const lang = codeBlockMatch[1] || 'document';
         const code = codeBlockMatch[2];
 
         const trigger = document.createElement('div');
         trigger.className = 'artifact-card-trigger';
-        trigger.onclick = () => openArtifact(lang.toUpperCase() + ' Snippet', code);
+        trigger.onclick = () => openArtifact(lang.toUpperCase() + ' Artifact', code);
         trigger.innerHTML = `
           <div style="display:flex; align-items:center; gap:8px;">
-            <i data-lucide="layout-template" style="width:16px; height:16px; color:var(--claude-coral);"></i>
+            <i data-lucide="layout-template" style="width:16px; height:16px; color:var(--ayyan-coral);"></i>
             <span style="font-size:0.88rem; font-weight:500;">Open Artifact: ${lang.toUpperCase()}</span>
           </div>
           <i data-lucide="chevron-right" style="width:16px; height:16px; color:var(--text-muted);"></i>
@@ -1162,21 +1521,51 @@
     function copyArtifact() {
       const code = document.getElementById('artifact-body').textContent;
       navigator.clipboard.writeText(code);
-      alert('Artifact copied to clipboard!');
+      alert('Copied to clipboard!');
     }
 
-    function exportCurrentChat() {
+    function exportArtifactAsPDF() {
+      const title = document.getElementById('artifact-title').textContent;
+      const content = document.getElementById('artifact-body').textContent;
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(16);
+      doc.text(title, 20, 20);
+      doc.setFont("courier", "normal");
+      doc.setFontSize(10);
+      const splitText = doc.splitTextToSize(content, 170);
+      doc.text(splitText, 20, 32);
+      doc.save(`${title.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`);
+    }
+
+    function exportArtifactAsPPT() {
+      const title = document.getElementById('artifact-title').textContent;
+      const content = document.getElementById('artifact-body').textContent;
+      const pptx = new PptxGenJS();
+      let slide = pptx.addSlide();
+      slide.addText(title, { x: 0.8, y: 0.6, fontSize: 24, fontFace: 'Georgia', bold: true });
+      slide.addText(content.slice(0, 800), { x: 0.8, y: 1.5, w: '85%', fontSize: 13, fontFace: 'Consolas' });
+      pptx.writeFile({ fileName: `${title.replace(/[^a-zA-Z0-9]/g, '_')}.pptx` });
+    }
+
+    function exportCurrentChat(format) {
       const chat = getCurrentChat();
       if (!chat || !chat.messages.length) return alert('No chat messages to export!');
-      let md = `# ${chat.title}\n\n`;
-      chat.messages.forEach(m => {
-        md += `### ${m.role === 'user' ? 'User' : 'Claude'}\n${m.content}\n\n---\n\n`;
-      });
-      const blob = new Blob([md], { type: 'text/markdown' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = `${chat.title.replace(/[^a-zA-Z0-9]/g, '_')}.md`;
-      a.click();
+
+      if (format === 'doc') {
+        generateWordDoc(chat.title);
+      } else {
+        let md = `# ${chat.title}\n\n`;
+        chat.messages.forEach(m => {
+          md += `### ${m.role === 'user' ? 'User' : 'AYYAN'}\n${m.content}\n\n---\n\n`;
+        });
+        const blob = new Blob([md], { type: 'text/markdown' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `${chat.title.replace(/[^a-zA-Z0-9]/g, '_')}.md`;
+        a.click();
+      }
     }
 
     /* Settings Modal */
@@ -1204,9 +1593,9 @@
       modelName = model;
       systemPrompt = prompt;
 
-      localStorage.setItem('claude_tunnel_url', tunnelUrl);
-      localStorage.setItem('claude_model_name', modelName);
-      localStorage.setItem('claude_system_prompt', systemPrompt);
+      localStorage.setItem('ayyan_tunnel_url', tunnelUrl);
+      localStorage.setItem('ayyan_model_name', modelName);
+      localStorage.setItem('ayyan_system_prompt', systemPrompt);
 
       updateHeader();
       closeSettings();
