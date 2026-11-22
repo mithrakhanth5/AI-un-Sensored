@@ -27,39 +27,68 @@
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <style>
+    /* Exact Typography extracted from Claude Desktop reverse engineering */
+    @font-face {
+      font-family: 'Anthropic Serif';
+      src: url('./fonts/AnthropicSerif-Romans-Variable-25x258.ttf') format('truetype');
+      font-weight: 100 900;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Anthropic Sans';
+      src: url('./fonts/AnthropicSans-Romans-Variable-25x258.ttf') format('truetype');
+      font-weight: 100 900;
+      font-style: normal;
+    }
+
+    /* Exact Design Tokens extracted from Claude Desktop (Vite bundle window-shared.css) */
     :root {
-      --bg: #FBFBF9;
-      --sidebar: #F4F3EE;
-      --sidebar-border: #E8E6DF;
-      --card-bg: #FFFFFF;
-      --card-border: #E5E3DC;
-      --text-main: #201F1D;
-      --text-muted: #6E6D69;
-      --ayyan-accent: #D97706;
-      --ayyan-coral: #D96B43;
-      --user-bubble: #ECEAE4;
-      --artifact-bg: #F7F6F2;
-      --font-serif: "Copernicus", "Tiempos", "Georgia", Cambria, serif;
-      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --accent-clay: #d97757;
+      --accent-brand: 15 63.1% 59.6%;
+      --bg-main: #faf9f5;
+      --bg-sidebar: #f0eee6;
+      --border-main: rgba(112, 107, 87, 0.25);
+      --border-strong: rgba(112, 107, 87, 0.5);
+      --text-main: #29261b;
+      --text-secondary: #737163;
+      --text-muted: #8c897a;
+      --user-bubble: #ebe7df;
+      --card-bg: #ffffff;
+      --font-serif: 'Anthropic Serif', "Copernicus", "Tiempos", "Georgia", serif;
+      --font-sans: 'Anthropic Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    /* Official Claude Desktop Dark Theme Tokens */
+    body.dark-mode {
+      --bg-main: #262624;
+      --bg-sidebar: #1f1f1d;
+      --border-main: rgba(234, 221, 216, 0.12);
+      --border-strong: rgba(234, 221, 216, 0.25);
+      --text-main: #f5f4ef;
+      --text-secondary: #a6a39a;
+      --text-muted: #807e77;
+      --user-bubble: #33322f;
+      --card-bg: #2d2c29;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: var(--font-sans);
-      background-color: var(--bg);
+      background-color: var(--bg-main);
       color: var(--text-main);
       display: flex;
       height: 100vh;
       width: 100vw;
       overflow: hidden;
       -webkit-font-smoothing: antialiased;
+      transition: background-color 0.2s, color 0.2s;
     }
 
     /* Sidebar */
     #sidebar {
       width: 270px;
-      background: var(--sidebar);
-      border-right: 1px solid var(--sidebar-border);
+      background: var(--bg-sidebar);
+      border-right: 1px solid var(--border-main);
       display: flex;
       flex-direction: column;
       padding: 16px;
@@ -78,9 +107,9 @@
       align-items: center;
       gap: 8px;
       font-family: var(--font-serif);
-      font-size: 1.45rem;
+      font-size: 1.5rem;
       font-weight: 700;
-      color: var(--ayyan-coral);
+      color: var(--accent-clay);
       cursor: pointer;
       letter-spacing: -0.5px;
     }
@@ -89,7 +118,7 @@
       align-items: center;
       gap: 10px;
       background: var(--card-bg);
-      border: 1px solid var(--card-border);
+      border: 1px solid var(--border-main);
       border-radius: 10px;
       padding: 10px 14px;
       font-size: 0.9rem;
@@ -99,7 +128,7 @@
       box-shadow: 0 1px 2px rgba(0,0,0,0.03);
       transition: all 0.15s;
     }
-    .btn-new-chat:hover { background: #ECEAE4; }
+    .btn-new-chat:hover { opacity: 0.85; }
 
     .history-label {
       font-size: 0.72rem;
@@ -123,12 +152,12 @@
       padding: 8px 10px;
       border-radius: 8px;
       font-size: 0.85rem;
-      color: var(--text-muted);
+      color: var(--text-secondary);
       cursor: pointer;
       transition: all 0.15s;
     }
     .history-item:hover, .history-item.active {
-      background: #ECEAE4;
+      background: var(--user-bubble);
       color: var(--text-main);
     }
     .history-title {
@@ -141,7 +170,7 @@
       opacity: 0;
       background: transparent;
       border: none;
-      color: #991b1b;
+      color: #ef4444;
       cursor: pointer;
       padding: 2px 4px;
       border-radius: 4px;
@@ -149,7 +178,7 @@
     .history-item:hover .btn-delete-chat { opacity: 1; }
 
     .sidebar-footer {
-      border-top: 1px solid var(--sidebar-border);
+      border-top: 1px solid var(--border-main);
       padding-top: 12px;
       display: flex;
       flex-direction: column;
@@ -162,14 +191,14 @@
       background: transparent;
       border: none;
       font-size: 0.85rem;
-      color: var(--text-muted);
+      color: var(--text-secondary);
       cursor: pointer;
       padding: 8px;
       border-radius: 6px;
       width: 100%;
       text-align: left;
     }
-    .btn-sidebar-action:hover { background: #ECEAE4; color: var(--text-main); }
+    .btn-sidebar-action:hover { background: var(--user-bubble); color: var(--text-main); }
 
     /* Main Container */
     #main-container {
@@ -184,12 +213,12 @@
     /* Top Bar */
     header {
       height: 52px;
-      border-bottom: 1px solid var(--sidebar-border);
+      border-bottom: 1px solid var(--border-main);
       display: flex;
       align-items: center;
       justify-content: space-between;
       padding: 0 20px;
-      background: var(--bg);
+      background: var(--bg-main);
       flex-shrink: 0;
     }
     .header-left {
@@ -206,7 +235,7 @@
       padding: 4px 10px;
       border-radius: 20px;
       background: var(--card-bg);
-      border: 1px solid var(--card-border);
+      border: 1px solid var(--border-main);
       color: var(--text-main);
       cursor: pointer;
     }
@@ -237,7 +266,7 @@
 
     /* Welcome Hero */
     .hero-container {
-      margin-top: 50px;
+      margin-top: 40px;
       text-align: center;
       display: flex;
       flex-direction: column;
@@ -245,15 +274,15 @@
       gap: 14px;
     }
     .hero-badge {
-      font-size: 2.6rem;
+      font-size: 2.8rem;
       font-family: var(--font-serif);
       font-weight: 600;
-      color: var(--ayyan-coral);
+      color: var(--accent-clay);
       letter-spacing: -1px;
     }
     .hero-subtitle {
       font-size: 1.05rem;
-      color: var(--text-muted);
+      color: var(--text-secondary);
       max-width: 520px;
       line-height: 1.5;
     }
@@ -265,7 +294,7 @@
       margin-top: 4px;
     }
     .tag-badge {
-      background: #ECEAE4;
+      background: var(--user-bubble);
       color: var(--text-main);
       font-size: 0.75rem;
       font-weight: 500;
@@ -281,7 +310,7 @@
     }
     .prompt-card {
       background: var(--card-bg);
-      border: 1px solid var(--card-border);
+      border: 1px solid var(--border-main);
       border-radius: 12px;
       padding: 14px 16px;
       font-size: 0.85rem;
@@ -291,7 +320,7 @@
       transition: all 0.15s;
     }
     .prompt-card:hover {
-      border-color: var(--ayyan-coral);
+      border-color: var(--accent-clay);
       transform: translateY(-1px);
     }
 
@@ -319,7 +348,7 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      background: #DDD9CF;
+      background: rgba(0,0,0,0.06);
       padding: 4px 10px;
       border-radius: 6px;
       font-size: 0.75rem;
@@ -329,7 +358,7 @@
       width: 28px;
       height: 28px;
       border-radius: 6px;
-      background: var(--ayyan-coral);
+      background: var(--accent-clay);
       color: white;
       display: flex;
       align-items: center;
@@ -347,8 +376,8 @@
     }
     .assistant-content p { margin-bottom: 12px; }
     .assistant-content pre {
-      background: #1E1E1E;
-      color: #EDEDED;
+      background: #1e1e1e;
+      color: #ededed;
       padding: 14px;
       border-radius: 10px;
       overflow-x: auto;
@@ -365,10 +394,10 @@
     }
     .assistant-content pre code { background: transparent; padding: 0; }
 
-    /* Media Containers in Chat */
+    /* Media Cards */
     .generated-media-card {
       background: var(--card-bg);
-      border: 1px solid var(--card-border);
+      border: 1px solid var(--border-main);
       border-radius: 12px;
       padding: 12px;
       margin: 12px 0;
@@ -377,7 +406,7 @@
       gap: 8px;
       max-width: 520px;
     }
-    .generated-media-card img, .generated-media-card video {
+    .generated-media-card img {
       width: 100%;
       border-radius: 8px;
       object-fit: cover;
@@ -389,8 +418,8 @@
       font-size: 0.8rem;
     }
     .btn-download-media {
-      background: var(--sidebar);
-      border: 1px solid var(--card-border);
+      background: var(--bg-sidebar);
+      border: 1px solid var(--border-main);
       padding: 4px 10px;
       border-radius: 6px;
       cursor: pointer;
@@ -398,17 +427,19 @@
       align-items: center;
       gap: 4px;
       font-size: 0.78rem;
+      text-decoration: none;
+      color: var(--text-main);
     }
-    .btn-download-media:hover { background: #ECEAE4; }
+    .btn-download-media:hover { opacity: 0.8; }
 
-    /* Action Suite Dock (Claude-like generator bar) */
+    /* Action Suite Dock */
     .input-dock {
       position: absolute;
       bottom: 0;
       left: 0;
       right: 0;
       padding: 10px 20px 20px;
-      background: linear-gradient(180deg, rgba(251, 251, 249, 0) 0%, rgba(251, 251, 249, 0.95) 25%, rgba(251, 251, 249, 1) 100%);
+      background: linear-gradient(180deg, transparent 0%, var(--bg-main) 30%, var(--bg-main) 100%);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -424,7 +455,7 @@
     }
     .gen-chip {
       background: var(--card-bg);
-      border: 1px solid var(--card-border);
+      border: 1px solid var(--border-main);
       border-radius: 20px;
       padding: 4px 10px;
       font-size: 0.75rem;
@@ -438,8 +469,7 @@
       transition: all 0.15s;
     }
     .gen-chip:hover {
-      border-color: var(--ayyan-coral);
-      background: #FAF8F5;
+      border-color: var(--accent-clay);
       transform: translateY(-1px);
     }
 
@@ -447,7 +477,7 @@
       width: 100%;
       max-width: 760px;
       background: var(--card-bg);
-      border: 1px solid var(--card-border);
+      border: 1px solid var(--border-main);
       border-radius: 16px;
       box-shadow: 0 4px 20px rgba(0,0,0,0.05);
       padding: 10px 14px 10px;
@@ -466,8 +496,8 @@
       display: flex;
       align-items: center;
       gap: 6px;
-      background: var(--sidebar);
-      border: 1px solid var(--card-border);
+      background: var(--bg-sidebar);
+      border: 1px solid var(--border-main);
       padding: 4px 8px;
       border-radius: 8px;
       font-size: 0.8rem;
@@ -508,27 +538,27 @@
     }
     .btn-attach {
       background: transparent;
-      border: 1px solid var(--card-border);
+      border: 1px solid var(--border-main);
       border-radius: 8px;
       padding: 6px 10px;
       display: flex;
       align-items: center;
       gap: 6px;
       font-size: 0.8rem;
-      color: var(--text-muted);
+      color: var(--text-secondary);
       cursor: pointer;
       transition: all 0.15s;
     }
     .btn-attach:hover {
-      background: var(--sidebar);
+      background: var(--bg-sidebar);
       color: var(--text-main);
-      border-color: var(--ayyan-coral);
+      border-color: var(--accent-clay);
     }
     .btn-send {
       width: 34px;
       height: 34px;
       border-radius: 8px;
-      background: var(--ayyan-coral);
+      background: var(--accent-clay);
       color: white;
       border: none;
       display: flex;
@@ -543,7 +573,7 @@
     #artifact-panel {
       width: 0;
       background: var(--card-bg);
-      border-left: 1px solid var(--sidebar-border);
+      border-left: 1px solid var(--border-main);
       transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
       display: flex;
       flex-direction: column;
@@ -553,20 +583,17 @@
     #artifact-panel.open { width: 500px; }
     .artifact-header {
       padding: 14px 18px;
-      border-bottom: 1px solid var(--card-border);
+      border-bottom: 1px solid var(--border-main);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      background: var(--sidebar);
+      background: var(--bg-sidebar);
     }
     .artifact-title { font-weight: 600; font-size: 0.95rem; color: var(--text-main); }
-    .artifact-actions-bar {
-      display: flex;
-      gap: 6px;
-    }
+    .artifact-actions-bar { display: flex; gap: 6px; }
     .btn-artifact-opt {
-      background: white;
-      border: 1px solid var(--card-border);
+      background: var(--card-bg);
+      border: 1px solid var(--border-main);
       padding: 4px 8px;
       border-radius: 6px;
       cursor: pointer;
@@ -574,27 +601,27 @@
       display: flex;
       align-items: center;
       gap: 4px;
+      color: var(--text-main);
     }
-    .btn-artifact-opt:hover { background: #ECEAE4; }
+    .btn-artifact-opt:hover { opacity: 0.85; }
     .artifact-body {
       flex: 1;
       overflow: auto;
       padding: 16px;
       font-family: "Consolas", monospace;
       font-size: 0.88rem;
-      background: #1E1E1E;
-      color: #EDEDED;
+      background: #1e1e1e;
+      color: #ededed;
       white-space: pre-wrap;
     }
 
-    /* Artifact Trigger Button */
     .artifact-card-trigger {
       display: flex;
       align-items: center;
       justify-content: space-between;
       background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-left: 4px solid var(--ayyan-coral);
+      border: 1px solid var(--border-main);
+      border-left: 4px solid var(--accent-clay);
       padding: 10px 14px;
       border-radius: 8px;
       margin: 12px 0;
@@ -616,7 +643,7 @@
     }
     .modal-card {
       background: var(--card-bg);
-      border: 1px solid var(--card-border);
+      border: 1px solid var(--border-main);
       border-radius: 16px;
       width: 90%;
       max-width: 500px;
@@ -626,16 +653,18 @@
       flex-direction: column;
       gap: 16px;
     }
-    .modal-title { font-family: var(--font-serif); font-size: 1.3rem; color: var(--ayyan-coral); }
+    .modal-title { font-family: var(--font-serif); font-size: 1.3rem; color: var(--accent-clay); }
     .form-group { display: flex; flex-direction: column; gap: 6px; }
     .form-group label { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; }
     .form-group input, .form-group textarea {
       padding: 10px 12px;
-      border: 1px solid var(--card-border);
+      border: 1px solid var(--border-main);
       border-radius: 8px;
       font-size: 0.92rem;
       outline: none;
       font-family: inherit;
+      background: var(--bg-main);
+      color: var(--text-main);
     }
 
     /* Mobile */
@@ -645,7 +674,7 @@
       #artifact-panel.open { position: fixed; right: 0; top: 0; bottom: 0; width: 100vw; }
       .mobile-menu-btn { display: block !important; }
     }
-    .mobile-menu-btn { display: none; background: transparent; border: none; cursor: pointer; }
+    .mobile-menu-btn { display: none; background: transparent; border: none; cursor: pointer; color: var(--text-main); }
   </style>
 </head>
 <body>
@@ -671,6 +700,10 @@
     <div class="chat-history" id="chat-history"></div>
 
     <div class="sidebar-footer">
+      <button class="btn-sidebar-action" onclick="toggleDarkMode()">
+        <i data-lucide="moon" id="dark-icon" style="width: 16px; height: 16px;"></i>
+        <span id="dark-text">Dark Theme</span>
+      </button>
       <button class="btn-sidebar-action" onclick="exportCurrentChat('md')">
         <i data-lucide="download" style="width: 16px; height: 16px;"></i>
         <span>Export Chat (.md)</span>
@@ -696,8 +729,8 @@
           <span id="header-model-name">qwen2.5:7b</span>
         </div>
       </div>
-      <div style="font-size: 0.85rem; color: var(--text-muted); display: flex; align-items: center; gap: 6px;">
-        <i data-lucide="sparkles" style="width: 15px; height: 15px; color: var(--ayyan-coral);"></i>
+      <div style="font-size: 0.85rem; color: var(--text-secondary); display: flex; align-items: center; gap: 6px;">
+        <i data-lucide="sparkles" style="width: 15px; height: 15px; color: var(--accent-clay);"></i>
         <span>AYYAN Intelligence Suite</span>
       </div>
     </header>
@@ -719,15 +752,15 @@
           <div class="prompt-suggestions">
             <div class="prompt-card" onclick="triggerQuickGen('image', 'A hyper-realistic futuristic cyber hacker laboratory with neon holograms and multi-screen dashboards')">
               <strong>🎨 Generate AI Image</strong><br>
-              <span style="color:var(--text-muted)">Futuristic cyber laboratory visual</span>
+              <span style="color:var(--text-secondary)">Futuristic cyber laboratory visual</span>
             </div>
             <div class="prompt-card" onclick="triggerQuickGen('ppt', 'Artificial Intelligence Trends and Future Impact')">
               <strong>📊 Create PPT Presentation</strong><br>
-              <span style="color:var(--text-muted)">Downloadable PowerPoint slides</span>
+              <span style="color:var(--text-secondary)">Downloadable PowerPoint slides</span>
             </div>
             <div class="prompt-card" onclick="triggerQuickGen('pdf', 'Executive Cybersecurity Audit Summary Report')">
               <strong>📄 Generate PDF Document</strong><br>
-              <span style="color:var(--text-muted)">Formatted business PDF report</span>
+              <span style="color:var(--text-secondary)">Formatted business PDF report</span>
             </div>
           </div>
         </div>
@@ -739,7 +772,7 @@
       <!-- Quick Generator Toolbar -->
       <div class="quick-gen-bar">
         <div class="gen-chip" onclick="promptForGenerator('image')">
-          <i data-lucide="image" style="width:13px; height:13px; color:var(--ayyan-coral);"></i>
+          <i data-lucide="image" style="width:13px; height:13px; color:var(--accent-clay);"></i>
           <span>Generate Image</span>
         </div>
         <div class="gen-chip" onclick="promptForGenerator('ppt')">
@@ -772,7 +805,7 @@
               <i data-lucide="paperclip" style="width: 15px; height: 15px;"></i>
               <span>Attach File / Doc</span>
             </button>
-            <span style="font-size: 0.72rem; color: var(--text-muted);" id="attach-status">PDF, Docs, Code</span>
+            <span style="font-size: 0.72rem; color: var(--text-secondary);" id="attach-status">PDF, Docs, Code</span>
           </div>
 
           <button class="btn-send" id="btn-send" onclick="sendMessage()">
@@ -797,7 +830,7 @@
         <button class="btn-artifact-opt" onclick="copyArtifact()">
           <i data-lucide="copy" style="width: 13px; height: 13px;"></i> Copy
         </button>
-        <button onclick="closeArtifact()" style="background: transparent; border: none; cursor: pointer; display: flex; align-items: center;">
+        <button onclick="closeArtifact()" style="background: transparent; border: none; cursor: pointer; display: flex; align-items: center; color: var(--text-main);">
           <i data-lucide="x" style="width: 18px; height: 18px;"></i>
         </button>
       </div>
@@ -809,7 +842,7 @@
   <div class="modal-overlay" id="settings-modal">
     <div class="modal-card">
       <div class="modal-title">AYYAN Settings</div>
-      <p style="font-size: 0.85rem; color: var(--text-muted);">
+      <p style="font-size: 0.85rem; color: var(--text-secondary);">
         Configure your remote Cloudflare Tunnel endpoint and system instructions.
       </p>
       <div class="form-group">
@@ -825,8 +858,8 @@
         <textarea id="setting-system-prompt" rows="3" placeholder="You are AYYAN, an advanced AI system capable of deep analysis, code generation, presentation drafting, and document synthesis..."></textarea>
       </div>
       <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px;">
-        <button onclick="closeSettings()" style="padding: 8px 16px; border-radius: 8px; border: 1px solid var(--card-border); background: transparent; cursor: pointer;">Cancel</button>
-        <button onclick="saveSettings()" style="padding: 8px 16px; border-radius: 8px; border: none; background: var(--ayyan-coral); color: white; font-weight: 500; cursor: pointer;">Save Settings</button>
+        <button onclick="closeSettings()" style="padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border-main); background: transparent; cursor: pointer; color: var(--text-main);">Cancel</button>
+        <button onclick="saveSettings()" style="padding: 8px 16px; border-radius: 8px; border: none; background: var(--accent-clay); color: white; font-weight: 500; cursor: pointer;">Save Settings</button>
       </div>
     </div>
   </div>
@@ -842,9 +875,14 @@
     let tunnelUrl = localStorage.getItem('ayyan_tunnel_url') || localStorage.getItem('claude_tunnel_url') || '';
     let modelName = localStorage.getItem('ayyan_model_name') || localStorage.getItem('claude_model_name') || 'qwen2.5:7b';
     let systemPrompt = localStorage.getItem('ayyan_system_prompt') || 'You are AYYAN, an advanced, highly capable AI assistant. Be thorough, creative, and precise.';
+    let isDark = localStorage.getItem('ayyan_theme') === 'dark';
 
     document.addEventListener("DOMContentLoaded", () => {
       lucide.createIcons();
+      if (isDark) {
+        document.body.classList.add('dark-mode');
+        document.getElementById('dark-text').textContent = 'Light Theme';
+      }
       updateHeader();
       renderChatHistory();
 
@@ -858,6 +896,13 @@
         openSettings();
       }
     });
+
+    function toggleDarkMode() {
+      isDark = !isDark;
+      document.body.classList.toggle('dark-mode', isDark);
+      localStorage.setItem('ayyan_theme', isDark ? 'dark' : 'light');
+      document.getElementById('dark-text').textContent = isDark ? 'Light Theme' : 'Dark Theme';
+    }
 
     function updateHeader() {
       document.getElementById('header-model-name').textContent = modelName;
@@ -892,15 +937,15 @@
           <div class="prompt-suggestions">
             <div class="prompt-card" onclick="triggerQuickGen('image', 'A hyper-realistic futuristic cyber hacker laboratory with neon holograms and multi-screen dashboards')">
               <strong>🎨 Generate AI Image</strong><br>
-              <span style="color:var(--text-muted)">Futuristic cyber laboratory visual</span>
+              <span style="color:var(--text-secondary)">Futuristic cyber laboratory visual</span>
             </div>
             <div class="prompt-card" onclick="triggerQuickGen('ppt', 'Artificial Intelligence Trends and Future Impact')">
               <strong>📊 Create PPT Presentation</strong><br>
-              <span style="color:var(--text-muted)">Downloadable PowerPoint slides</span>
+              <span style="color:var(--text-secondary)">Downloadable PowerPoint slides</span>
             </div>
             <div class="prompt-card" onclick="triggerQuickGen('pdf', 'Executive Cybersecurity Audit Summary Report')">
               <strong>📄 Generate PDF Document</strong><br>
-              <span style="color:var(--text-muted)">Formatted business PDF report</span>
+              <span style="color:var(--text-secondary)">Formatted business PDF report</span>
             </div>
           </div>
         </div>
@@ -1052,7 +1097,7 @@
         const chip = document.createElement('div');
         chip.className = 'file-chip';
         chip.innerHTML = `
-          <i data-lucide="file-text" style="width:13px; height:13px; color:var(--ayyan-coral);"></i>
+          <i data-lucide="file-text" style="width:13px; height:13px; color:var(--accent-clay);"></i>
           <span>${escapeHtml(att.name)} (${att.size})</span>
           <button class="file-chip-remove" onclick="removeAttachment(${idx})"><i data-lucide="x" style="width:12px; height:12px;"></i></button>
         `;
@@ -1072,7 +1117,7 @@
       return (bytes / 1048576).toFixed(1) + ' MB';
     }
 
-    /* Generators: Image, PDF, PPT, Doc, Video */
+    /* Generators */
     function promptForGenerator(type) {
       let promptText = "";
       if (type === 'image') {
@@ -1126,7 +1171,6 @@
     function generateVideoClip(promptText) {
       const seed = Math.floor(Math.random() * 999999);
       const encoded = encodeURIComponent(promptText);
-      // High-performance video clip animation endpoint
       const videoUrl = `https://image.pollinations.ai/prompt/${encoded}?width=1024&height=1024&seed=${seed}&nologo=true&model=flux`;
 
       appendUserMessage(`/video ${promptText}`);
@@ -1152,32 +1196,29 @@
         const pptx = new PptxGenJS();
         pptx.layout = 'LAYOUT_16x9';
 
-        // Slide 1: Title Slide
         let slide1 = pptx.addSlide();
-        slide1.background = { color: 'FBFBF9' };
-        slide1.addText(topic, { x: 1, y: 2.2, w: '80%', fontFace: 'Georgia', fontSize: 36, color: 'D96B43', bold: true });
-        slide1.addText("Generated by AYYAN AI Suite", { x: 1, y: 3.5, fontFace: 'Arial', fontSize: 16, color: '6E6D69' });
+        slide1.background = { color: 'FAF9F5' };
+        slide1.addText(topic, { x: 1, y: 2.2, w: '80%', fontFace: 'Georgia', fontSize: 36, color: 'D97757', bold: true });
+        slide1.addText("Generated by AYYAN AI Suite", { x: 1, y: 3.5, fontFace: 'Arial', fontSize: 16, color: '737163' });
 
-        // Slide 2: Executive Overview
         let slide2 = pptx.addSlide();
         slide2.background = { color: 'FFFFFF' };
-        slide2.addText("Executive Overview", { x: 0.8, y: 0.6, fontSize: 24, fontFace: 'Georgia', color: '201F1D', bold: true });
+        slide2.addText("Executive Overview", { x: 0.8, y: 0.6, fontSize: 24, fontFace: 'Georgia', color: '29261B', bold: true });
         slide2.addText([
           { text: "• High-level strategic foundation and problem definition\n", options: { fontSize: 16 } },
           { text: "• Key architectural drivers and target outcomes\n", options: { fontSize: 16 } },
           { text: "• Critical performance indicators and evaluation metrics", options: { fontSize: 16 } }
         ], { x: 0.8, y: 1.8, w: '85%', h: 3.5, fontFace: 'Arial', color: '333333' });
 
-        // Slide 3: Core Pillars & Strategy
         let slide3 = pptx.addSlide();
         slide3.background = { color: 'FFFFFF' };
-        slide3.addText("Core Strategic Pillars", { x: 0.8, y: 0.6, fontSize: 24, fontFace: 'Georgia', color: '201F1D', bold: true });
+        slide3.addText("Core Strategic Pillars", { x: 0.8, y: 0.6, fontSize: 24, fontFace: 'Georgia', color: '29261B', bold: true });
         slide3.addText([
-          { text: "1. Optimization & Resource Allocation\n", options: { fontSize: 16, bold: true, color: 'D96B43' } },
+          { text: "1. Optimization & Resource Allocation\n", options: { fontSize: 16, bold: true, color: 'D97757' } },
           { text: "   Maximizing cloud efficiency while eliminating local bottlenecks.\n\n", options: { fontSize: 14 } },
-          { text: "2. Scalability & Autonomous Execution\n", options: { fontSize: 16, bold: true, color: 'D96B43' } },
+          { text: "2. Scalability & Autonomous Execution\n", options: { fontSize: 16, bold: true, color: 'D97757' } },
           { text: "   Continuous capability delivery across mobile and desktop environments.\n\n", options: { fontSize: 14 } },
-          { text: "3. Future Outlook\n", options: { fontSize: 16, bold: true, color: 'D96B43' } },
+          { text: "3. Future Outlook\n", options: { fontSize: 16, bold: true, color: 'D97757' } },
           { text: "   Sustained intelligence pipeline with iterative improvements.", options: { fontSize: 14 } }
         ], { x: 0.8, y: 1.6, w: '85%', h: 4.5, fontFace: 'Arial', color: '333333' });
 
@@ -1209,19 +1250,19 @@
 
         doc.setFont("helvetica", "bold");
         doc.setFontSize(22);
-        doc.setTextColor(217, 107, 67);
+        doc.setTextColor(217, 119, 87);
         doc.text(topic, 20, 25);
 
         doc.setFontSize(10);
-        doc.setTextColor(110, 109, 105);
+        doc.setTextColor(115, 113, 99);
         doc.text("Generated by AYYAN Intelligence Platform - " + new Date().toLocaleDateString(), 20, 33);
 
-        doc.setDrawColor(229, 227, 220);
+        doc.setDrawColor(200, 195, 180);
         doc.line(20, 38, 190, 38);
 
         doc.setFont("helvetica", "normal");
         doc.setFontSize(12);
-        doc.setTextColor(32, 31, 29);
+        doc.setTextColor(41, 38, 27);
 
         const sampleText = `1. SUMMARY\nThis document provides an executive summary and comprehensive analysis for "${topic}". All models and analytical pipelines were synthesized via AYYAN's high-speed reasoning suite.\n\n` +
           `2. STRATEGIC IMPLICATIONS\nDetailed execution guidelines have been structured to ensure seamless remote execution, minimal hardware latency, and optimal workflow delivery across desktop and mobile devices.\n\n` +
@@ -1251,8 +1292,8 @@
         <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
         <head><title>${escapeHtml(topic)}</title></head>
         <body style="font-family: Arial, sans-serif;">
-          <h1 style="color: #D96B43;">${escapeHtml(topic)}</h1>
-          <p style="color: #6E6D69;">Generated by AYYAN AI Suite</p>
+          <h1 style="color: #D97757;">${escapeHtml(topic)}</h1>
+          <p style="color: #737163;">Generated by AYYAN AI Suite</p>
           <hr>
           <h2>1. Executive Summary</h2>
           <p>Comprehensive report and strategy overview for ${escapeHtml(topic)}.</p>
@@ -1262,10 +1303,7 @@
         </html>
       `;
 
-      const blob = new Blob(['\ufeff', htmlContent], {
-        type: 'application/msword'
-      });
-
+      const blob = new Blob(['\ufeff', htmlContent], { type: 'application/msword' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -1319,7 +1357,6 @@
       const text = input.value.trim();
       if (!text && !pendingAttachments.length) return;
 
-      // Check for quick slash commands
       if (text.startsWith('/image ')) {
         const p = text.replace('/image ', '').trim();
         input.value = '';
@@ -1498,7 +1535,7 @@
         trigger.onclick = () => openArtifact(lang.toUpperCase() + ' Artifact', code);
         trigger.innerHTML = `
           <div style="display:flex; align-items:center; gap:8px;">
-            <i data-lucide="layout-template" style="width:16px; height:16px; color:var(--ayyan-coral);"></i>
+            <i data-lucide="layout-template" style="width:16px; height:16px; color:var(--accent-clay);"></i>
             <span style="font-size:0.88rem; font-weight:500;">Open Artifact: ${lang.toUpperCase()}</span>
           </div>
           <i data-lucide="chevron-right" style="width:16px; height:16px; color:var(--text-muted);"></i>
