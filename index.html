@@ -791,6 +791,10 @@
           <i data-lucide="video" style="width:13px; height:13px; color:#9333ea;"></i>
           <span>Generate Video</span>
         </div>
+        <div class="gen-chip" onclick="activateREAMode()">
+          <i data-lucide="binary" style="width:13px; height:13px; color:#059669;"></i>
+          <span>REA Reverse Engineer</span>
+        </div>
       </div>
 
       <div class="input-card">
@@ -1118,6 +1122,13 @@
     }
 
     /* Generators */
+    function activateREAMode() {
+      const input = document.getElementById('prompt-input');
+      input.value = "Perform a deep Reverse Engineering Analysis (REA) on this artifact:\n1. Architecture, packaging & binary layout\n2. Decompilation & control-flow reconstruction\n3. Deobfuscation and hidden endpoint discovery\n4. Security boundaries & vulnerability analysis\n\n";
+      input.focus();
+      triggerFilePicker();
+    }
+
     function promptForGenerator(type) {
       let promptText = "";
       if (type === 'image') {
