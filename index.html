@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Claude</title>
+  <!-- Marked.js for Markdown -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <!-- Highlight.js for Code Highlighting -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    :root {
+      --bg: #FBFBF9;
+      --sidebar: #F4F3EE;
+      --sidebar-border: #E8E6DF;
+      --card-bg: #FFFFFF;
+      --card-border: #E5E3DC;
+      --text-main: #201F1D;
+      --text-muted: #6E6D69;
+      --claude-accent: #D97706;
+      --claude-coral: #D96B43;
+      --user-bubble: #ECEAE4;
+      --font-serif: "Copernicus", "Tiempos", "Georgia", Cambria, serif;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--bg);
+      color: var(--text-main);
+      display: flex;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Sidebar */
+    #sidebar {
+      width: 260px;
+      background: var(--sidebar);
+      border-right: 1px solid var(--sidebar-border);
+      display: flex;
+      flex-direction: column;
+      padding: 16px;
+      transition: transform 0.25s ease;
+      z-index: 50;
+    }
+    .sidebar-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .logo-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-serif);
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--claude-coral);
+      cursor: pointer;
+    }
+    .btn-new-chat {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--text-main);
+      cursor: pointer;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+      transition: all 0.15s;
+    }
+    .btn-new-chat:hover {
+      background: #ECEAE4;
+    }
+    .chat-history {
+      flex: 1;
+      overflow-y: auto;
+      margin: 16px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .history-item {
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .history-item:hover, .history-item.active {
+      background: #ECEAE4;
+      color: var(--text-main);
+    }
+    .sidebar-footer {
+      border-top: 1px solid var(--sidebar-border);
+      padding-top: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .btn-settings {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: transparent;
+      border: none;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 6px 8px;
+      border-radius: 6px;
+    }
+    .btn-settings:hover { background: #ECEAE4; color: var(--text-main); }
+
+    /* Main Container */
+    #main-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Top Bar */
+    header {
+      height: 52px;
+      border-bottom: 1px solid var(--sidebar-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      background: var(--bg);
+    }
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .model-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.82rem;
+      font-weight: 500;
+      padding: 4px 10px;
+      border-radius: 20px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+    }
+    .status-indicator {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #22c55e;
+    }
+    .status-indicator.offline { background: #ef4444; }
+
+    /* Chat Area */
+    #chat-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 30px 20px 100px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .chat-wrapper {
+      width: 100%;
+      max-width: 740px;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    /* Welcome Hero */
+    .hero-container {
+      margin-top: 80px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+    .hero-badge {
+      font-size: 2.2rem;
+      font-family: var(--font-serif);
+      font-weight: 500;
+      color: var(--claude-coral);
+      letter-spacing: -0.5px;
+    }
+    .hero-subtitle {
+      font-size: 1.05rem;
+      color: var(--text-muted);
+      max-width: 460px;
+      line-height: 1.5;
+    }
+    .prompt-suggestions {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 10px;
+      width: 100%;
+      margin-top: 24px;
+    }
+    .prompt-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      font-size: 0.85rem;
+      color: var(--text-main);
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .prompt-card:hover {
+      border-color: var(--claude-coral);
+      transform: translateY(-1px);
+    }
+
+    /* Message Bubbles */
+    .message-row {
+      display: flex;
+      gap: 16px;
+      width: 100%;
+      line-height: 1.65;
+      font-size: 0.98rem;
+    }
+    .message-row.user {
+      justify-content: flex-end;
+    }
+    .user-content {
+      background: var(--user-bubble);
+      color: var(--text-main);
+      padding: 12px 18px;
+      border-radius: 20px;
+      max-width: 80%;
+      word-break: break-word;
+    }
+    .assistant-icon {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      background: var(--claude-coral);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-serif);
+      font-weight: bold;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+      margin-top: 4px;
+    }
+    .assistant-content {
+      flex: 1;
+      overflow-x: auto;
+      color: var(--text-main);
+    }
+    .assistant-content p { margin-bottom: 12px; }
+    .assistant-content pre {
+      background: #1E1E1E;
+      color: #EDEDED;
+      padding: 14px;
+      border-radius: 10px;
+      overflow-x: auto;
+      margin: 12px 0;
+      font-family: "Consolas", monospace;
+      font-size: 0.88rem;
+    }
+    .assistant-content code {
+      font-family: "Consolas", monospace;
+      font-size: 0.9em;
+      background: rgba(0,0,0,0.05);
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+    .assistant-content pre code {
+      background: transparent;
+      padding: 0;
+    }
+
+    /* Input Bar */
+    .input-dock {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 16px 20px 24px;
+      background: linear-gradient(180deg, rgba(251, 251, 249, 0) 0%, rgba(251, 251, 249, 0.95) 40%, rgba(251, 251, 249, 1) 100%);
+      display: flex;
+      justify-content: center;
+    }
+    .input-card {
+      width: 100%;
+      max-width: 740px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+      padding: 12px 14px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    textarea#prompt-input {
+      width: 100%;
+      border: none;
+      outline: none;
+      resize: none;
+      font-family: inherit;
+      font-size: 1rem;
+      color: var(--text-main);
+      background: transparent;
+      height: 52px;
+      max-height: 180px;
+      line-height: 1.5;
+    }
+    .input-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .input-meta {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+    .btn-send {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      background: var(--claude-coral);
+      color: white;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .btn-send:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    /* Settings Modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      backdrop-filter: blur(2px);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      width: 90%;
+      max-width: 480px;
+      padding: 24px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .modal-title {
+      font-family: var(--font-serif);
+      font-size: 1.3rem;
+      color: var(--claude-coral);
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .form-group label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+    .form-group input {
+      padding: 10px 12px;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      font-size: 0.92rem;
+      outline: none;
+    }
+    .form-group input:focus {
+      border-color: var(--claude-coral);
+    }
+
+    /* Mobile View */
+    @media (max-width: 768px) {
+      #sidebar {
+        position: fixed;
+        left: -260px;
+        top: 0;
+        bottom: 0;
+      }
+      #sidebar.open {
+        transform: translateX(260px);
+      }
+      .mobile-menu-btn { display: block !important; }
+    }
+    .mobile-menu-btn { display: none; background: transparent; border: none; cursor: pointer; }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <aside id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo-badge" onclick="newChat()">
+        <span>Claude</span>
+      </div>
+      <button class="mobile-menu-btn" onclick="toggleSidebar()"><i data-lucide="x"></i></button>
+    </div>
+
+    <button class="btn-new-chat" onclick="newChat()">
+      <i data-lucide="plus" style="width: 18px; height: 18px;"></i>
+      <span>Start new chat</span>
+    </button>
+
+    <div class="chat-history" id="chat-history">
+      <!-- Session List -->
+    </div>
+
+    <div class="sidebar-footer">
+      <button class="btn-settings" onclick="openSettings()">
+        <i data-lucide="settings" style="width: 16px; height: 16px;"></i>
+        <span>Connection Settings</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <div id="main-container">
+    <header>
+      <div class="header-left">
+        <button class="mobile-menu-btn" onclick="toggleSidebar()"><i data-lucide="menu"></i></button>
+        <div class="model-pill">
+          <span class="status-indicator" id="status-dot"></span>
+          <span id="header-model-name">qwen2.5:7b</span>
+        </div>
+      </div>
+      <div style="font-size: 0.85rem; color: var(--text-muted);">
+        <span>Cloudflare Ollama Tunnel</span>
+      </div>
+    </header>
+
+    <div id="chat-scroll">
+      <div class="chat-wrapper" id="chat-wrapper">
+        <!-- Hero screen -->
+        <div class="hero-container" id="hero-view">
+          <div class="hero-badge">Claude</div>
+          <div class="hero-subtitle">What would you like to explore or analyze today?</div>
+          <div class="prompt-suggestions">
+            <div class="prompt-card" onclick="quickPrompt('Write a clean Python script to automate file backups')">
+              <strong>Python Automation</strong><br>
+              <span style="color:var(--text-muted)">Automate routine file backup tasks</span>
+            </div>
+            <div class="prompt-card" onclick="quickPrompt('Explain the key differences between symmetric and asymmetric encryption')">
+              <strong>Security Concepts</strong><br>
+              <span style="color:var(--text-muted)">Symmetric vs asymmetric encryption</span>
+            </div>
+            <div class="prompt-card" onclick="quickPrompt('Help me debug this network connection timeout issue')">
+              <strong>Troubleshooting</strong><br>
+              <span style="color:var(--text-muted)">Diagnose network connection issues</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Input Dock -->
+    <div class="input-dock">
+      <div class="input-card">
+        <textarea id="prompt-input" placeholder="Reply to Claude..." onkeydown="handleKeyDown(event)"></textarea>
+        <div class="input-actions">
+          <span class="input-meta">Press Enter to send, Shift+Enter for new line</span>
+          <button class="btn-send" id="btn-send" onclick="sendMessage()">
+            <i data-lucide="arrow-up" style="width: 18px; height: 18px;"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div class="modal-overlay" id="settings-modal">
+    <div class="modal-card">
+      <div class="modal-title">Cloud Settings</div>
+      <p style="font-size: 0.85rem; color: var(--text-muted);">
+        Enter the Cloudflare Tunnel URL generated by your Google Colab instance.
+      </p>
+      <div class="form-group">
+        <label>Cloudflare Tunnel URL</label>
+        <input type="text" id="setting-tunnel-url" placeholder="https://xxxx.trycloudflare.com">
+      </div>
+      <div class="form-group">
+        <label>Model Identifier</label>
+        <input type="text" id="setting-model-name" placeholder="qwen2.5:7b">
+      </div>
+      <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px;">
+        <button onclick="closeSettings()" style="padding: 8px 16px; border-radius: 8px; border: 1px solid var(--card-border); background: transparent; cursor: pointer;">Cancel</button>
+        <button onclick="saveSettings()" style="padding: 8px 16px; border-radius: 8px; border: none; background: var(--claude-coral); color: white; font-weight: 500; cursor: pointer;">Save Settings</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let messages = [];
+    let tunnelUrl = localStorage.getItem('claude_tunnel_url') || '';
+    let modelName = localStorage.getItem('claude_model_name') || 'qwen2.5:7b';
+
+    document.addEventListener("DOMContentLoaded", () => {
+      lucide.createIcons();
+      updateHeader();
+      if (!tunnelUrl) {
+        openSettings();
+      }
+    });
+
+    function updateHeader() {
+      document.getElementById('header-model-name').textContent = modelName;
+      const dot = document.getElementById('status-dot');
+      dot.className = tunnelUrl ? 'status-indicator' : 'status-indicator offline';
+    }
+
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+    }
+
+    function openSettings() {
+      document.getElementById('setting-tunnel-url').value = tunnelUrl;
+      document.getElementById('setting-model-name').value = modelName;
+      document.getElementById('settings-modal').style.display = 'flex';
+    }
+
+    function closeSettings() {
+      document.getElementById('settings-modal').style.display = 'none';
+    }
+
+    function saveSettings() {
+      const url = document.getElementById('setting-tunnel-url').value.trim().replace(/\/$/, "");
+      const model = document.getElementById('setting-model-name').value.trim() || 'qwen2.5:7b';
+      if (!url) {
+        alert("Please provide your Cloudflare tunnel URL!");
+        return;
+      }
+      tunnelUrl = url;
+      modelName = model;
+      localStorage.setItem('claude_tunnel_url', tunnelUrl);
+      localStorage.setItem('claude_model_name', modelName);
+      updateHeader();
+      closeSettings();
+    }
+
+    function newChat() {
+      messages = [];
+      const wrapper = document.getElementById('chat-wrapper');
+      wrapper.innerHTML = `
+        <div class="hero-container" id="hero-view">
+          <div class="hero-badge">Claude</div>
+          <div class="hero-subtitle">What would you like to explore or analyze today?</div>
+        </div>
+      `;
+    }
+
+    function quickPrompt(text) {
+      document.getElementById('prompt-input').value = text;
+      sendMessage();
+    }
+
+    function handleKeyDown(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    }
+
+    async function sendMessage() {
+      const input = document.getElementById('prompt-input');
+      const text = input.value.trim();
+      if (!text) return;
+      if (!tunnelUrl) {
+        openSettings();
+        return;
+      }
+
+      input.value = '';
+      input.style.height = '52px';
+
+      const hero = document.getElementById('hero-view');
+      if (hero) hero.remove();
+
+      appendUserMessage(text);
+      messages.push({ role: "user", content: text });
+
+      const assistantMsgDiv = appendAssistantMessage();
+      const contentEl = assistantMsgDiv.querySelector('.assistant-content');
+
+      try {
+        const response = await fetch(`${tunnelUrl}/v1/chat/completions`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: modelName,
+            messages: messages,
+            stream: true,
+            temperature: 0.7
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`Cloud server returned status ${response.status}`);
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let fullReply = '';
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value, { stream: true });
+          const lines = chunk.split('\n');
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const dataStr = line.slice(6).trim();
+              if (dataStr === '[DONE]') break;
+              try {
+                const parsed = JSON.parse(dataStr);
+                const delta = parsed.choices[0]?.delta?.content || '';
+                fullReply += delta;
+                contentEl.innerHTML = marked.parse(fullReply);
+                document.querySelectorAll('pre code').forEach((el) => {
+                  hljs.highlightElement(el);
+                });
+                scrollBottom();
+              } catch (e) {}
+            }
+          }
+        }
+
+        if (fullReply) {
+          messages.push({ role: "assistant", content: fullReply });
+        }
+      } catch (err) {
+        contentEl.innerHTML = `<span style="color:#ef4444;">Connection failed: ${err.message}. Please check your Cloudflare tunnel link in Settings.</span>`;
+      }
+    }
+
+    function appendUserMessage(text) {
+      const wrapper = document.getElementById('chat-wrapper');
+      const div = document.createElement('div');
+      div.className = 'message-row user';
+      div.innerHTML = `<div class="user-content">${escapeHtml(text).replace(/\n/g, '<br>')}</div>`;
+      wrapper.appendChild(div);
+      scrollBottom();
+    }
+
+    function appendAssistantMessage() {
+      const wrapper = document.getElementById('chat-wrapper');
+      const div = document.createElement('div');
+      div.className = 'message-row assistant';
+      div.innerHTML = `
+        <div class="assistant-icon">C</div>
+        <div class="assistant-content">
+          <span style="color:var(--text-muted); font-size: 0.9rem;">Claude is typing...</span>
+        </div>
+      `;
+      wrapper.appendChild(div);
+      scrollBottom();
+      return div;
+    }
+
+    function scrollBottom() {
+      const scroll = document.getElementById('chat-scroll');
+      scroll.scrollTop = scroll.scrollHeight;
+    }
+
+    function escapeHtml(string) {
+      return String(string).replace(/[&<>"'`=\/]/g, function (s) {
+        return ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;', '/': '&#x2F;'})[s];
+      });
+    }
+  </script>
+</body>
+</html>
